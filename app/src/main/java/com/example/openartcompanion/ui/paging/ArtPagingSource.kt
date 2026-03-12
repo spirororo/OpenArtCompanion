@@ -7,36 +7,19 @@ import com.example.openartcompanion.data.db.ArtDao
 import com.example.openartcompanion.data.db.ArtEntity
 import com.example.openartcompanion.data.db.SearchResultDao
 import com.example.openartcompanion.data.mapper.ArtMapper
-import com.example.openartcompanion.data.repository.ArtRepository
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
-import javax.inject.Singleton
+import kotlin.math.max
 
-@Singleton
-class ArtPagingSourceFactory @Inject constructor(
-    private val searchResultDao: SearchResultDao,
-    private val api: MetApiService,
-    private val artDao: ArtDao
-) {
-    fun create(searchId: String): ArtPagingSource {
-        return ArtPagingSource(
-            searchResultDao = searchResultDao,
-            api = api,
-            artDao = artDao,
-            searchId = searchId
-        )
-    }
-}
-
-class ArtPagingSource(
+class ArtPagingSource @Inject constructor(
     private val searchResultDao: SearchResultDao,
     private val api: MetApiService,
     private val artDao: ArtDao,
-    private val searchId: String
 ) : PagingSource<Int, ArtEntity>() {
 
+    lateinit var searchId: String
+
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ArtEntity> {
+        val searchId = searchId
         val page = params.key ?: 0
         val perPage = params.loadSize
 
@@ -76,7 +59,7 @@ class ArtPagingSource(
                 prevKey = if (page > 0) page - 1 else null,
                 nextKey = if ((page + 1) * perPage < totalCount) page + 1 else null,
                 itemsBefore = page * perPage,
-                itemsAfter = totalCount - ((page + 1) * perPage)
+                itemsAfter = max(totalCount - ((page + 1) * perPage), 0)
             )
         } catch (e: Exception) {
             LoadResult.Error(e)

@@ -1,35 +1,24 @@
 package com.example.openartcompanion.ui.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.openartcompanion.data.db.ArtEntity
 import com.example.openartcompanion.data.repository.ArtRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.example.openartcompanion.data.db.DepartmentEntity
 import com.example.openartcompanion.ui.paging.ArtPagingSource
-import com.example.openartcompanion.ui.paging.ArtPagingSourceFactory
-import com.example.openartcompanion.ui.paging.FavouritesPagingSource
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
 
 data class UIState(
     val isLoading: Boolean = false,
@@ -47,16 +36,16 @@ data class Filters(
 @HiltViewModel
 class ArtViewModel @Inject constructor(
     private val repository: ArtRepository,
-    private val pagingSourceFactory: ArtPagingSourceFactory
+    private val pagingSource: ArtPagingSource
 ) : ViewModel() {
     var uiState by mutableStateOf(UIState())
 
-    val departments = repository.getAllDepartments()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    var departments = mutableStateOf(listOf<DepartmentEntity>())
 
     init {
         viewModelScope.launch {
             repository.loadDepartments()
+            departments.value = repository.getAllDepartments()
         }
 
         viewModelScope.launch {
@@ -84,7 +73,9 @@ class ArtViewModel @Inject constructor(
                     initialLoadSize = 5
                 )
             ) {
-                pagingSourceFactory.create(searchId = searchId)
+                val source = pagingSource
+                source.searchId = searchId
+                source
             }.flow
         }
         .cachedIn(viewModelScope)
@@ -101,7 +92,8 @@ class ArtViewModel @Inject constructor(
                 val art = repository.getArtById(objectId)
                 uiState = uiState.copy(
                     isLoading = false,
-                    art = art
+                    art = art,
+                    error = null
                 )
             } catch (e: Exception) {
                 uiState = uiState.copy(
@@ -115,14 +107,25 @@ class ArtViewModel @Inject constructor(
     fun search() {
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
-            val newSearchId = repository.performSearch(
-                query = currentFilters.query,
-                hasImages = currentFilters.hasImages,
-                isOnView = currentFilters.isOnView,
-                departmentId = currentFilters.departmentId
-            )
-            _searchId.value = newSearchId
-            uiState = uiState.copy(isLoading = false)
+            try {
+                val newSearchId = repository.performSearch(
+                    query = currentFilters.query,
+                    hasImages = currentFilters.hasImages,
+                    isOnView = currentFilters.isOnView,
+                    departmentId = currentFilters.departmentId
+                )
+                _searchId.value = newSearchId
+                uiState = uiState.copy(
+                    isLoading = false,
+                    error = null
+                )
+            } catch (e: Exception) {
+                uiState = uiState.copy(
+                    isLoading = false,
+                    error = "Ошибка в загрузке объектов"
+                )
+            }
+
         }
     }
 

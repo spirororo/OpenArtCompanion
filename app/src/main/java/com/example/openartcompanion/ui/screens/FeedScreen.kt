@@ -1,16 +1,11 @@
 package com.example.openartcompanion.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,9 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import coil.compose.AsyncImage
-import com.example.openartcompanion.data.api.Department
-import com.example.openartcompanion.data.db.ArtEntity
 import com.example.openartcompanion.data.db.DepartmentEntity
 import com.example.openartcompanion.ui.viewmodel.ArtViewModel
 import com.example.openartcompanion.ui.components.ArtItem
@@ -38,7 +30,7 @@ fun FeedScreen(
 ) {
 
     val searchResultItems = viewModel.searchResultsPagingFlow.collectAsLazyPagingItems()
-    val departments by viewModel.departments.collectAsState()
+    val departments by viewModel.departments
 
     var isQueryValid = false
     var errorMessage: String? = null
@@ -126,7 +118,7 @@ fun FeedScreen(
 
                 TwoFilterSegmented(
                     viewModel.currentFilters.hasImages,
-                    { it -> viewModel.setHasImages(it) },
+                    { viewModel.setHasImages(it) },
                     "С изображениями",
                     "Без изображений"
                 )
@@ -135,7 +127,7 @@ fun FeedScreen(
 
                 TwoFilterSegmented(
                     viewModel.currentFilters.isOnView,
-                    { it -> viewModel.setIsOnView(it) },
+                    { viewModel.setIsOnView(it) },
                     "Сейчас выставлены",
                     "Не выставлены"
                 )

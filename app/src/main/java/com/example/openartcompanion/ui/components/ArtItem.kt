@@ -22,7 +22,7 @@ import com.example.openartcompanion.data.db.ArtEntity
 
 @Composable
 fun ArtItem(
-    art: ArtEntity,
+    art: ArtEntity?,
     favourites: Boolean = false,
     onClickFavourite: (ArtEntity) -> Unit,
     onClick: () -> Unit
@@ -34,6 +34,11 @@ fun ArtItem(
             .clickable { onClick() }
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
+            if (art == null) {
+                Text("Ошибка загрузки элемента")
+                return@Card
+            }
+
             if (favourites) {
                 IconButton(
                     onClick = {

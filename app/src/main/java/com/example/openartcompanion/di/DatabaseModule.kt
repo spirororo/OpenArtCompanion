@@ -6,7 +6,6 @@ import com.example.openartcompanion.data.db.AppDatabase
 import com.example.openartcompanion.data.db.ArtDao
 import com.example.openartcompanion.data.db.DepartmentDao
 import com.example.openartcompanion.data.db.LastSearchDao
-import com.example.openartcompanion.data.db.SearchResult
 import com.example.openartcompanion.data.db.SearchResultDao
 import dagger.Module
 import dagger.Provides

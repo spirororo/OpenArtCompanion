@@ -2,7 +2,6 @@ package com.example.openartcompanion.data.mapper
 
 import com.example.openartcompanion.data.api.ArtObjectDto
 import com.example.openartcompanion.data.api.Department
-import com.example.openartcompanion.data.api.DepartmentsResponse
 import com.example.openartcompanion.data.db.ArtEntity
 import com.example.openartcompanion.data.db.DepartmentEntity
 
